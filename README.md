@@ -1,10 +1,8 @@
 # 🐾 ToyClaw
 
-**1798 行代码实现的个人 AI 助手框架。**
+**千行代码实现的 OpenClaw。**
 
-ToyClaw 是一个极简但功能完整的 AI Agent 框架，参考 [nanobot](https://github.com/HKUDS/nanobot) 架构设计，用不到 2000 行 Python 实现了 Agent Loop、Tool Use、Cron 定时任务、Heartbeat 心跳、Sub-agent 后台任务、Web Search 等核心能力。
-
-> **设计哲学：** 能用库就不自己写，能省就省，但核心链路一个不少。
+ToyClaw 是一个极简但功能完整的 AI Agent 框架，参考 [nanobot](https://github.com/HKUDS/nanobot) 架构设计，用一千多行 Python 实现了 Agent Loop、Tool Use、Cron 定时任务、Heartbeat 心跳、Sub-agent 后台任务、Web Search 等核心能力。
 
 ---
 
@@ -19,7 +17,6 @@ ToyClaw 是一个极简但功能完整的 AI Agent 框架，参考 [nanobot](htt
 - [Skills 扩展](#skills-扩展)
 - [核心模块详解](#核心模块详解)
 - [测试](#测试)
-- [与 nanobot 的对比](#与-nanobot-的对比)
 
 ---
 
@@ -27,7 +24,9 @@ ToyClaw 是一个极简但功能完整的 AI Agent 框架，参考 [nanobot](htt
 
 ### 为什么做这个？
 
-nanobot 是一个优秀的开源 AI 助手框架，但它为了生产级能力引入了大量抽象层（MessageBus、多 Channel、多 Provider、MCP 协议、Memory Consolidation 等）。ToyClaw 的目标是：**砍掉一切非核心复杂度，用最少代码保留 Agent 的完整能力。**
+OpenClaw 已经达到了惊人的40w+行的代码量，抽象层套抽象层，耦合程度堪比仙人排队跳———套里还有套。它看起来很复杂，各种功能：聊天软件支持、多 Provider、Skills、MCP、长Memory、Cron定时任务、Sub-agent……但核心能力其实很简单。Agent Loop 就是一个 while 循环：LLM 思考，调用工具，拿到结果，再思考，直到给出最终回复。其他一切都是生产级需求的包装。
+
+我决定砍掉一切非核心复杂度，仅用 1000 行 Python 代码实现一个功能完整的OpenClaw。我把它命名为toyclaw。在openclaw自身的辅助下，总共花费时间不超过2小时，代码量千行出头，但是它能做的事情几乎和 nanobot 一样——支持工具调用、定时任务、skills扩展、Session 持久化等核心功能。
 
 ### 核心取舍
 
@@ -126,7 +125,6 @@ toyclaw/
     └── test_e2e.py                    # 4 项端到端测试
 ```
 
-**总计：1798 行 Python（15 个源文件）**
 
 ---
 
@@ -351,25 +349,6 @@ python tests/test_e2e.py
 
 覆盖 4 项：LLM 直接对话 → Tool Call 生成 → 完整 Agent Loop → Agent 调用工具创建文件并验证。
 
----
-
-## 与 nanobot 的对比
-
-| 维度 | nanobot | ToyClaw |
-|------|---------|----------|
-| 代码量 | ~15,000+ 行 | 1,798 行 |
-| Provider | 多 provider + LiteLLM | 单 OpenAI 兼容端点 |
-| Channel | Telegram / Discord / CLI | 仅 CLI |
-| 消息传递 | MessageBus + 事件系统 | 直接函数调用 + 回调 |
-| 工具协议 | 内置 + MCP | 仅内置 9 工具 |
-| 记忆 | Memory Consolidation | Agent 自行读写文件 |
-| 定时任务 | ✅ | ✅ |
-| 心跳 | ✅ | ✅ |
-| Sub-agent | ✅ | ✅ |
-| Skills | ✅ | ✅ |
-| 多模态 | ✅ | ❌ |
-| 权限系统 | ✅ | ❌ |
-| 适用场景 | 生产部署 | 学习 / 个人使用 / 快速原型 |
 
 ---
 
