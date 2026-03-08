@@ -1,8 +1,8 @@
-# 🐾 OpenClaw
+# 🐾 ToyClaw
 
 **1798 行代码实现的个人 AI 助手框架。**
 
-OpenClaw 是一个极简但功能完整的 AI Agent 框架，参考 [nanobot](https://github.com/HKUDS/nanobot) 架构设计，用不到 2000 行 Python 实现了 Agent Loop、Tool Use、Cron 定时任务、Heartbeat 心跳、Sub-agent 后台任务、Web Search 等核心能力。
+ToyClaw 是一个极简但功能完整的 AI Agent 框架，参考 [nanobot](https://github.com/HKUDS/nanobot) 架构设计，用不到 2000 行 Python 实现了 Agent Loop、Tool Use、Cron 定时任务、Heartbeat 心跳、Sub-agent 后台任务、Web Search 等核心能力。
 
 > **设计哲学：** 能用库就不自己写，能省就省，但核心链路一个不少。
 
@@ -27,7 +27,7 @@ OpenClaw 是一个极简但功能完整的 AI Agent 框架，参考 [nanobot](ht
 
 ### 为什么做这个？
 
-nanobot 是一个优秀的开源 AI 助手框架，但它为了生产级能力引入了大量抽象层（MessageBus、多 Channel、多 Provider、MCP 协议、Memory Consolidation 等）。OpenClaw 的目标是：**砍掉一切非核心复杂度，用最少代码保留 Agent 的完整能力。**
+nanobot 是一个优秀的开源 AI 助手框架，但它为了生产级能力引入了大量抽象层（MessageBus、多 Channel、多 Provider、MCP 协议、Memory Consolidation 等）。ToyClaw 的目标是：**砍掉一切非核心复杂度，用最少代码保留 Agent 的完整能力。**
 
 ### 核心取舍
 
@@ -104,9 +104,9 @@ User Input
 toyclaw/
 ├── pyproject.toml                     # 构建配置 + 依赖声明
 ├── README.md
-├── openclaw/
+├── toyclaw/
 │   ├── __init__.py              (3)   # 版本号
-│   ├── __main__.py              (5)   # python -m openclaw 入口
+│   ├── __main__.py              (5)   # python -m toyclaw 入口
 │   ├── config.py               (43)   # JSON 配置加载
 │   ├── provider.py             (98)   # OpenAI SDK 封装
 │   ├── context.py             (129)   # System prompt + 消息组装
@@ -147,7 +147,7 @@ pip install -e .
 
 ### 配置
 
-创建配置文件 `~/.openclaw/config.json`：
+创建配置文件 `~/.toyclaw/config.json`：
 
 ```json
 {
@@ -161,16 +161,16 @@ pip install -e .
 
 ```bash
 # 交互模式
-openclaw
+toyclaw
 
 # 或者
-python -m openclaw
+python -m toyclaw
 
 # 单次执行
-openclaw -m "帮我写一个 hello world"
+toyclaw -m "帮我写一个 hello world"
 
 # 指定配置文件
-openclaw -c /path/to/config.json
+toyclaw -c /path/to/config.json
 ```
 
 ### REPL 命令
@@ -184,14 +184,14 @@ openclaw -c /path/to/config.json
 
 ## 配置说明
 
-`~/.openclaw/config.json` 支持以下字段：
+`~/.toyclaw/config.json` 支持以下字段：
 
 ```json
 {
   "api_key": "",                  // 必填 — LLM API Key
   "api_base": "https://api.openai.com/v1",  // API 端点
   "model": "gpt-4o",             // 模型名称
-  "workspace": "~/.openclaw/workspace",      // 工作区路径
+  "workspace": "~/.toyclaw/workspace",      // 工作区路径
   "brave_api_key": null,          // Brave Search API Key（可选）
   "max_iterations": 30,           // Agent 单轮最大迭代次数
   "heartbeat_interval": 1800,     // 心跳间隔（秒）
@@ -204,7 +204,7 @@ openclaw -c /path/to/config.json
 启动后自动创建：
 
 ```
-~/.openclaw/workspace/
+~/.toyclaw/workspace/
 ├── memory/          # 长期记忆（MEMORY.md 等）
 ├── sessions/        # 会话历史（JSONL 格式）
 ├── skills/          # 技能扩展目录
@@ -219,7 +219,7 @@ openclaw -c /path/to/config.json
 
 ## 内置工具
 
-OpenClaw 提供 9 个内置工具，LLM 可自主决定何时调用：
+ToyClaw 提供 9 个内置工具，LLM 可自主决定何时调用：
 
 | 工具 | 名称 | 功能 |
 |------|------|------|
@@ -355,7 +355,7 @@ python tests/test_e2e.py
 
 ## 与 nanobot 的对比
 
-| 维度 | nanobot | OpenClaw |
+| 维度 | nanobot | ToyClaw |
 |------|---------|----------|
 | 代码量 | ~15,000+ 行 | 1,798 行 |
 | Provider | 多 provider + LiteLLM | 单 OpenAI 兼容端点 |
@@ -380,3 +380,10 @@ MIT
 ---
 
 *Built as a learning exercise — understanding AI agents by building one from scratch.*
+
+---
+
+## 致谢
+
+- [OpenClaw](https://github.com/OpenClaw) — ToyClaw 的灵感来源与构建过程中的得力助手，没有它就没有这个项目。
+- [nanobot](https://github.com/HKUDS/nanobot) — 优秀的轻量级 AI Agent 框架，ToyClaw 的架构设计参考了它的核心思路。

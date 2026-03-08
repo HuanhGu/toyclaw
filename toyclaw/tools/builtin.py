@@ -14,11 +14,11 @@ from urllib.parse import urlparse
 
 import httpx
 
-from openclaw.tools.base import Tool
+from toyclaw.tools.base import Tool
 
 if TYPE_CHECKING:
-    from openclaw.cron import CronService
-    from openclaw.subagent import SubagentManager
+    from toyclaw.cron import CronService
+    from toyclaw.subagent import SubagentManager
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -231,7 +231,7 @@ class ShellTool(Tool):
 # Web
 # ===================================================================
 
-_UA = "Mozilla/5.0 (compatible; OpenClaw/0.1)"
+_UA = "Mozilla/5.0 (compatible; ToyClaw/0.1)"
 
 
 class WebSearchTool(Tool):
@@ -374,7 +374,7 @@ class CronTool(Tool):
     ) -> str:
         if not message:
             return "Error: message is required"
-        from openclaw.cron import CronSchedule
+        from toyclaw.cron import CronSchedule
 
         delete_after = False
         if every_seconds:

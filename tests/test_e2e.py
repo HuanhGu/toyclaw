@@ -10,13 +10,13 @@ sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="repla
 
 async def main():
     # 1. Load config
-    from openclaw.config import load_config
+    from toyclaw.config import load_config
     cfg = load_config()
     print(f"[config] model={cfg.model}, api_base={cfg.api_base}")
     print(f"[config] workspace={cfg.workspace}")
 
     # 2. Test provider directly — simple chat (no tools)
-    from openclaw.provider import OpenAIProvider
+    from toyclaw.provider import OpenAIProvider
     provider = OpenAIProvider(
         api_key=cfg.api_key,
         api_base=cfg.api_base,
@@ -37,8 +37,8 @@ async def main():
 
     # 3. Test with tools — LLM should call a tool
     print("--- Test 2: Chat with tools (expect tool call) ---")
-    from openclaw.tools.base import ToolRegistry
-    from openclaw.tools.builtin import ReadFileTool, WriteFileTool, ListDirTool, ShellTool
+    from toyclaw.tools.base import ToolRegistry
+    from toyclaw.tools.builtin import ReadFileTool, WriteFileTool, ListDirTool, ShellTool
 
     ws = cfg.workspace
     reg = ToolRegistry()
@@ -71,8 +71,8 @@ async def main():
 
     # 4. Full agent loop test (via agent.py)
     print("\n--- Test 3: Full Agent.process() ---")
-    from openclaw.agent import Agent
-    from openclaw.session import SessionManager
+    from toyclaw.agent import Agent
+    from toyclaw.session import SessionManager
 
     sess_mgr = SessionManager(ws)
 

@@ -8,9 +8,9 @@ import uuid
 from pathlib import Path
 from typing import Any, Awaitable, Callable
 
-from openclaw.provider import OpenAIProvider
-from openclaw.tools.base import ToolRegistry
-from openclaw.tools.builtin import (
+from toyclaw.provider import OpenAIProvider
+from toyclaw.tools.base import ToolRegistry
+from toyclaw.tools.builtin import (
     EditFileTool,
     ListDirTool,
     ReadFileTool,

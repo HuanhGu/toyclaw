@@ -1,4 +1,4 @@
-"""Functional tests for openclaw components (no API key needed)."""
+"""Functional tests for toyclaw components (no API key needed)."""
 import asyncio
 import json
 import os
@@ -11,7 +11,7 @@ loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
 # ── 1. Config ──
-from openclaw.config import Config, load_config
+from toyclaw.config import Config, load_config
 
 
 def test_config():
@@ -37,7 +37,7 @@ def test_config():
 
 
 # ── 2. Provider data classes ──
-from openclaw.provider import LLMResponse, ToolCallRequest
+from toyclaw.provider import LLMResponse, ToolCallRequest
 
 
 def test_provider_dataclasses():
@@ -55,7 +55,7 @@ def test_provider_dataclasses():
 
 
 # ── 3. Tool registry ──
-from openclaw.tools.base import ToolRegistry
+from toyclaw.tools.base import ToolRegistry
 
 
 def test_tool_registry():
@@ -70,7 +70,7 @@ def test_tool_registry():
 
 
 # ── 4. Builtin tools ──
-from openclaw.tools.builtin import (
+from toyclaw.tools.builtin import (
     EditFileTool,
     ListDirTool,
     ReadFileTool,
@@ -163,7 +163,7 @@ def test_tool_registry_with_tools():
 
 
 # ── 6. Session ──
-from openclaw.session import Session, SessionManager
+from toyclaw.session import Session, SessionManager
 
 
 def test_session():
@@ -200,7 +200,7 @@ def test_session():
 
 
 # ── 7. Skills ──
-from openclaw.skills import SkillsLoader
+from toyclaw.skills import SkillsLoader
 
 
 def test_skills():
@@ -229,7 +229,7 @@ def test_skills():
 
 
 # ── 8. Context ──
-from openclaw.context import ContextBuilder
+from toyclaw.context import ContextBuilder
 
 
 def test_context():
@@ -251,7 +251,7 @@ def test_context():
         assert messages[1]["role"] == "user"
 
         system = messages[0]["content"]
-        assert "OpenClaw" in system
+        assert "ToyClaw" in system
         assert "Test Agent Instructions" in system
         assert "test_skill" in system
         print("  context: ContextBuilder OK")
@@ -276,7 +276,7 @@ def test_context():
 
 
 # ── 9. Cron ──
-from openclaw.cron import CronJob, CronSchedule, CronService
+from toyclaw.cron import CronJob, CronSchedule, CronService
 
 
 def test_cron():
@@ -333,7 +333,7 @@ def test_cron():
 
 
 # ── 10. CronTool ──
-from openclaw.tools.builtin import CronTool
+from toyclaw.tools.builtin import CronTool
 
 
 def test_cron_tool():
@@ -368,7 +368,7 @@ def test_cron_tool():
 
 
 # ── 11. Heartbeat ──
-from openclaw.heartbeat import HeartbeatService
+from toyclaw.heartbeat import HeartbeatService
 
 
 def test_heartbeat():
@@ -398,7 +398,7 @@ def test_heartbeat():
 
 
 # ── 12. WebFetchTool (strip HTML) ──
-from openclaw.tools.builtin import WebFetchTool
+from toyclaw.tools.builtin import WebFetchTool
 
 
 def test_web_fetch_strip():
