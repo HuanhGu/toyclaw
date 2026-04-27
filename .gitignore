@@ -1,10 +1,7 @@
-<<<<<<< HEAD
 # 自定义项目
 ./toyclaw/workplace0427/
 
 
-=======
->>>>>>> e19b7b9c189d06ea7c3a82b964a96c18b146be1e
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
