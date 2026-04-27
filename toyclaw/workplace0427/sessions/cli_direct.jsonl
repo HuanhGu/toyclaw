@@ -1,5 +1,9 @@
-{"_type": "metadata", "key": "cli:direct", "created_at": "2026-04-27T11:43:52.897382", "updated_at": "2026-04-27T11:44:24.841193"}
+{"_type": "metadata", "key": "cli:direct", "created_at": "2026-04-27T11:43:52.897382", "updated_at": "2026-04-27T13:50:14.750134"}
 {"role": "user", "content": "1+1=?", "timestamp": "2026-04-27T11:44:07.524639"}
 {"role": "assistant", "content": "1+1等于2。", "timestamp": "2026-04-27T11:44:07.524639"}
 {"role": "user", "content": "你是谁，介绍你自己", "timestamp": "2026-04-27T11:44:24.841193"}
 {"role": "assistant", "content": "嗨，我是 ToyClaw，一个由月之暗面科技有限公司开发的人工智能助手。我擅长中英文对话，能够帮助你获取信息、解决问题，还能处理文件和网页内容。如果你有任何疑问或需要帮助，随时告诉我，我会尽我所能为你提供支持。让我们开始吧！", "timestamp": "2026-04-27T11:44:24.841193"}
+{"role": "user", "content": "3+5=?", "timestamp": "2026-04-27T13:49:58.891767"}
+{"role": "assistant", "content": "3+5等于8。", "timestamp": "2026-04-27T13:49:58.891767"}
+{"role": "user", "content": "英国的首都是哪里", "timestamp": "2026-04-27T13:50:14.750134"}
+{"role": "assistant", "content": "英国的首都是伦敦。", "timestamp": "2026-04-27T13:50:14.750134"}
