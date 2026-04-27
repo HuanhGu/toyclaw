@@ -29,11 +29,16 @@ class ContextBuilder:
         channel: str | None = None,
         chat_id: str | None = None,
         skills_summary: str = "",
+        memory_context: str = "",
     ) -> list[dict[str, Any]]:
         """Return the full message list: [system, ...history, user]."""
         system = self._build_system_prompt(skills_summary)
         runtime = self._runtime_context(channel, chat_id)
-        merged_user = f"{runtime}\n\n{user_message}"
+        user_parts = [runtime]
+        if memory_context.strip():
+            user_parts.append(f"[Memory Recall]\n{memory_context.strip()}")
+        user_parts.append(user_message)
+        merged_user = "\n\n".join(user_parts)
         return [
             {"role": "system", "content": system},
             *history,

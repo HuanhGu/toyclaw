@@ -21,6 +21,8 @@ class Config:
     max_iterations: int = 30
     heartbeat_interval: int = 1800  # seconds
     heartbeat_enabled: bool = True
+    memory_trigger_count: int = 20
+    memory_compact_batch_size: int = 10
 
 
 def load_config(path: Path | None = None) -> Config:
@@ -33,7 +35,12 @@ def load_config(path: Path | None = None) -> Config:
     for key in ("api_key", "api_base", "model", "brave_api_key"):
         if key in raw:
             kwargs[key] = raw[key]
-    for key in ("max_iterations", "heartbeat_interval"):
+    for key in (
+        "max_iterations",
+        "heartbeat_interval",
+        "memory_trigger_count",
+        "memory_compact_batch_size",
+    ):
         if key in raw:
             kwargs[key] = int(raw[key])
     if "heartbeat_enabled" in raw:

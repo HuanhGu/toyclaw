@@ -48,7 +48,11 @@ def _build_stack(cfg: Config):
     _ensure_workspace(ws)
 
     provider = OpenAIProvider(api_key=cfg.api_key, api_base=cfg.api_base, default_model=cfg.model)
-    session_mgr = SessionManager(ws)
+    session_mgr = SessionManager(
+        ws,
+        memory_trigger_count=cfg.memory_trigger_count,
+        memory_compact_batch_size=cfg.memory_compact_batch_size,
+    )
 
     # Async output callback (for subagent results & cron)
     async def _print_async(text: str) -> None:
@@ -136,7 +140,7 @@ async def _async_main(cfg: Config, one_shot: str | None = None) -> None:
             if text == "/new":
                 session = agent.sessions.get_or_create("cli:direct")
                 session.clear()
-                agent.sessions.save(session)
+                agent.sessions.save(session)  # 在这里保存“用户发言”
                 print("New session started.\n")
                 continue
             resp = await agent.process(text)

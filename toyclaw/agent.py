@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Awaitable, Callable
 
 from toyclaw.context import ContextBuilder
+from toyclaw.memory import MemoryManager
 from toyclaw.provider import LLMResponse, OpenAIProvider
 from toyclaw.session import Session, SessionManager
 from toyclaw.skills import SkillsLoader
@@ -43,6 +44,7 @@ class Agent:
 
         self._ctx = ContextBuilder(workspace)
         self._skills = SkillsLoader(workspace)
+        self._memory = MemoryManager(workspace)
 
     # ------------------------------------------------------------------
     # Public API
@@ -61,6 +63,7 @@ class Agent:
 
         session = self.sessions.get_or_create(session_key)
         history = session.get_history(max_messages=self.memory_window)
+        memory_context = self._memory.format_search_context(content, limit=3)
 
         skills_summary = self._skills.build_summary()
         messages = self._ctx.build_messages(
@@ -69,6 +72,7 @@ class Agent:
             channel=channel,
             chat_id=chat_id,
             skills_summary=skills_summary,
+            memory_context=memory_context,
         )
 
         final, _, all_msgs = await self._run_loop(messages)
@@ -77,7 +81,7 @@ class Agent:
             final = "I've completed processing but have no response to give."
 
         self._save_turn(session, all_msgs, skip=1 + len(history))
-        self.sessions.save(session)
+        self.sessions.save(session) # 在这里保存“agent发言”
         return final
 
     # ------------------------------------------------------------------

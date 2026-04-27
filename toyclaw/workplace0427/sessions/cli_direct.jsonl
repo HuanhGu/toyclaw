@@ -1,0 +1,15 @@
+{"_type": "metadata", "key": "cli:direct", "created_at": "2026-04-27T11:43:52.897382", "updated_at": "2026-04-27T14:24:16.813511"}
+{"role": "user", "content": "1+1=?", "timestamp": "2026-04-27T11:44:07.524639"}
+{"role": "assistant", "content": "1+1等于2。", "timestamp": "2026-04-27T11:44:07.524639"}
+{"role": "user", "content": "你是谁，介绍你自己", "timestamp": "2026-04-27T11:44:24.841193"}
+{"role": "assistant", "content": "嗨，我是 ToyClaw，一个由月之暗面科技有限公司开发的人工智能助手。我擅长中英文对话，能够帮助你获取信息、解决问题，还能处理文件和网页内容。如果你有任何疑问或需要帮助，随时告诉我，我会尽我所能为你提供支持。让我们开始吧！", "timestamp": "2026-04-27T11:44:24.841193"}
+{"role": "user", "content": "3+5=?", "timestamp": "2026-04-27T13:49:58.891767"}
+{"role": "assistant", "content": "3+5等于8。", "timestamp": "2026-04-27T13:49:58.891767"}
+{"role": "user", "content": "英国的首都是哪里", "timestamp": "2026-04-27T13:50:14.750134"}
+{"role": "assistant", "content": "英国的首都是伦敦。", "timestamp": "2026-04-27T13:50:14.750134"}
+{"role": "user", "content": "3+4=?", "timestamp": "2026-04-27T14:04:03.605521"}
+{"role": "assistant", "content": "3+4等于7。", "timestamp": "2026-04-27T14:04:03.605521"}
+{"role": "user", "content": "1+2=?", "timestamp": "2026-04-27T14:22:34.988359"}
+{"role": "assistant", "content": "1+2等于3。", "timestamp": "2026-04-27T14:22:34.988359"}
+{"role": "user", "content": "给我推荐一本英文名著。", "timestamp": "2026-04-27T14:24:16.813511"}
+{"role": "assistant", "content": "当然可以。这里有几本经典的英文名著推荐给你：\n\n1. **\"Pride and Prejudice\" by Jane Austen** - 简·奥斯汀的这部作品是英国文学的经典之作，讲述了19世纪初英国乡村社会中的爱情与婚姻。\n\n2. **\"To Kill a Mockingbird\" by Harper Lee** - 哈珀·李的这部小说以其深刻的道德主题和对种族不公的探讨而闻名。\n\n3. **\"1984\" by George Orwell** - 乔治·奥威尔的这部反乌托邦小说描绘了一个极权主义的未来世界，对个人自由和政府监控提出了深刻的思考。\n\n4. **\"The Great Gatsby\" by F. Scott Fitzgerald** - 菲茨杰拉德的这部作品是对美国梦的探讨，以及20世纪20年代的繁荣与幻灭。\n\n5. **\"Moby Dick\" by Herman Melville** - 赫尔曼·梅尔维尔的这部小说是一部史诗般的冒险故事，同时也是一部关于人性、信仰和命运的深刻探讨。\n\n6. **\"Jane Eyre\" by Charlotte Brontë** - 夏洛蒂·勃朗特的这部作品是一部关于成长、爱情和女性独立的经典小说。\n\n7. **\"The Catcher in the Rye\" by J.D. Salinger** - J.D.塞林格的这部小说以其对青少年异化和成长的描绘而成为现代文学的经典。\n\n这些书籍都是英语文学中的重要作品，不仅因其文学价值而受到赞誉，也因其对人性和社会的深刻洞察而经久不衰。你可以根据自己的兴趣选择一本来阅读。", "timestamp": "2026-04-27T14:24:16.813511"}

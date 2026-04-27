@@ -8,6 +8,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from toyclaw.memory import MemoryManager
+
 
 @dataclass
 class Session:
@@ -43,10 +45,20 @@ class Session:
 class SessionManager:
     """Manages sessions persisted as JSONL files."""
 
-    def __init__(self, workspace: Path):
+    def __init__(
+        self,
+        workspace: Path,
+        memory_trigger_count: int = 20,
+        memory_compact_batch_size: int = 10,
+    ):
         self._dir = workspace / "sessions"
         self._dir.mkdir(parents=True, exist_ok=True)
         self._cache: dict[str, Session] = {}
+        self._memory = MemoryManager(
+            workspace,
+            trigger_count=memory_trigger_count,
+            compact_batch_size=memory_compact_batch_size,
+        )
 
     def get_or_create(self, key: str) -> Session:
         if key in self._cache:
@@ -67,7 +79,8 @@ class SessionManager:
             f.write(json.dumps(meta, ensure_ascii=False) + "\n")
             for msg in session.messages:
                 f.write(json.dumps(msg, ensure_ascii=False) + "\n")
-        self._cache[session.key] = session
+        self._cache[session.key] = session  # 历史会话
+        self._memory.maybe_compact(exclude_files={path.name})
 
     # ------------------------------------------------------------------
 
