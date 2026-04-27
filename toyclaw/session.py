@@ -80,7 +80,7 @@ class SessionManager:
             for msg in session.messages:
                 f.write(json.dumps(msg, ensure_ascii=False) + "\n")
         self._cache[session.key] = session  # 历史会话
-        self._memory.maybe_compact(exclude_files={path.name})
+        self._memory.maybe_compact(exclude_files={path.name})   # 记忆压缩相关
 
     # ------------------------------------------------------------------
 

@@ -63,16 +63,16 @@ class Agent:
 
         session = self.sessions.get_or_create(session_key)
         history = session.get_history(max_messages=self.memory_window)
-        memory_context = self._memory.format_search_context(content, limit=3)
+        memory_context = self._memory.format_search_context(content, limit=3)  # 注入历史记忆
 
         skills_summary = self._skills.build_summary()
         messages = self._ctx.build_messages(
-            history=history,
+            history=history,            # 短期会话上下文
             user_message=content,
             channel=channel,
             chat_id=chat_id,
             skills_summary=skills_summary,
-            memory_context=memory_context,
+            memory_context=memory_context,  # 长期记忆注入
         )
 
         final, _, all_msgs = await self._run_loop(messages)

@@ -10,7 +10,7 @@ from typing import Any
 
 class MemoryManager:
     """Compact old session JSONL files into long-term memory JSONL archives."""
-
+    
     def __init__(
         self,
         workspace: Path,
@@ -27,15 +27,20 @@ class MemoryManager:
         self.compact_batch_size = compact_batch_size
         self.keep_messages_per_session = keep_messages_per_session
         self.max_message_chars = max_message_chars
+    
 
+
+    # ====================  记忆压缩  ======================
     def maybe_compact(self, *, exclude_files: set[str] | None = None) -> int:
         """Compact old sessions when file count reaches threshold."""
+        """压缩 所有session/*jsonl 文件 : 当有[trigger_count]个 .jsonl文件, 则压缩其中的[compact_batch_size]个文件  """
+
         exclude_files = exclude_files or set()
         session_files = sorted(self._sessions_dir.glob("*.jsonl"), key=lambda p: p.stat().st_mtime)
-        if len(session_files) < self.trigger_count:
+        if len(session_files) < self.trigger_count:  
             return 0
 
-        candidates = [p for p in session_files if p.name not in exclude_files]
+        candidates = [p for p in session_files if p.name not in exclude_files]  # 当前文件不必压缩
         to_compact = candidates[: self.compact_batch_size]
         if not to_compact:
             return 0
@@ -53,7 +58,7 @@ class MemoryManager:
             }
             out.write(json.dumps(header, ensure_ascii=False) + "\n")
             for session_path in to_compact:
-                payload = self._compact_session_file(session_path)
+                payload = self._compact_session_file(session_path)   # 记忆压缩部分
                 if payload is None:
                     continue
                 out.write(json.dumps(payload, ensure_ascii=False) + "\n")
@@ -67,8 +72,86 @@ class MemoryManager:
             session_path.unlink(missing_ok=True)
         return compacted
 
+
+    def _compact_session_file(self, path: Path) -> dict[str, Any] | None:
+        """压缩每个会话.jsonl文件(滑动窗口) : 截取最新对话信息self.keep_messages_per_session条 """
+
+        try:
+            lines = path.read_text(encoding="utf-8").splitlines()
+        except Exception:
+            return None
+
+        created_at = None
+        updated_at = None
+        key = path.stem
+        messages: list[dict[str, Any]] = []
+
+        for line in lines:
+            if not line.strip():
+                continue
+            try:
+                data = json.loads(line)
+            except Exception:
+                continue
+
+            if data.get("_type") == "metadata":
+                key = str(data.get("key") or key)
+                created_at = data.get("created_at")
+                updated_at = data.get("updated_at")
+                continue
+
+            compact_msg = self._compact_message(data)  # 压缩每一行会话信息
+            if compact_msg is not None:
+                messages.append(compact_msg)
+
+        if not messages:
+            return None
+
+        trimmed_messages = messages[-self.keep_messages_per_session :]
+        return {
+            "_type": "memory_compact",
+            "key": key,
+            "created_at": created_at,
+            "updated_at": updated_at,
+            "archived_at": datetime.now().isoformat(),
+            "message_count": len(messages),
+            "messages": trimmed_messages,
+        }
+
+
+
+    def _compact_message(self, msg: dict[str, Any]) -> dict[str, Any] | None:
+        """ 压缩每条jsonl信息 : 直接截断 """
+
+        role = msg.get("role")
+        if role not in {"user", "assistant", "tool"}:
+            return None
+
+        content = msg.get("content")
+        if isinstance(content, str):
+            text = content.strip()
+        else:
+            text = json.dumps(content, ensure_ascii=False) if content is not None else ""
+
+        if len(text) > self.max_message_chars:
+            text = text[: self.max_message_chars] + " ... (trimmed)"
+
+        item = {"role": role, "content": text}
+        if "timestamp" in msg:
+            item["timestamp"] = msg["timestamp"]
+        if role == "tool" and "name" in msg:
+            item["name"] = msg["name"]
+        return item
+
+
+
+
+
+    # ====================  记忆检索  ======================
     def search(self, query: str, limit: int = 5) -> list[dict[str, Any]]:
         """Return compact memory hits ranked by simple keyword overlap."""
+        """记忆检索 : 关键词检索策略 """
+    
         q = query.strip().lower()
         if not q:
             return []
@@ -91,24 +174,6 @@ class MemoryManager:
         hits.sort(key=lambda x: x[0], reverse=True)
         return [item for _, item in hits[:limit]]
 
-    def format_search_context(self, query: str, limit: int = 3) -> str:
-        """Build a concise memory context block for prompt injection."""
-        records = self.search(query, limit=limit)
-        if not records:
-            return ""
-
-        lines = ["Relevant archived memory:"]
-        for idx, r in enumerate(records, start=1):
-            key = r.get("key", "unknown")
-            updated = r.get("updated_at", "")
-            msg_count = r.get("message_count", 0)
-            messages = r.get("messages", [])[-3:]
-            snippet = " | ".join(
-                f"{m.get('role', '?')}: {str(m.get('content', '')).replace(chr(10), ' ')[:120]}"
-                for m in messages
-            )
-            lines.append(f"{idx}. key={key} updated={updated} total={msg_count} :: {snippet}")
-        return "\n".join(lines)
 
     def _read_archive_records(self, path: Path) -> list[dict[str, Any]]:
         out: list[dict[str, Any]] = []
@@ -135,67 +200,27 @@ class MemoryManager:
             parts.append(str(msg.get("content", "")))
         return " ".join(parts)
 
-    def _compact_session_file(self, path: Path) -> dict[str, Any] | None:
-        try:
-            lines = path.read_text(encoding="utf-8").splitlines()
-        except Exception:
-            return None
 
-        created_at = None
-        updated_at = None
-        key = path.stem
-        messages: list[dict[str, Any]] = []
+    
 
-        for line in lines:
-            if not line.strip():
-                continue
-            try:
-                data = json.loads(line)
-            except Exception:
-                continue
+    # ====================  构建memory块，以便调用agent时注入  ======================
+    def format_search_context(self, query: str, limit: int = 3) -> str:
+        """Build a concise memory context block for prompt injection."""
+        """将memory封装成块, 以便调用agent时注入"""
+        
+        records = self.search(query, limit=limit)
+        if not records:
+            return ""
 
-            if data.get("_type") == "metadata":
-                key = str(data.get("key") or key)
-                created_at = data.get("created_at")
-                updated_at = data.get("updated_at")
-                continue
-
-            compact_msg = self._compact_message(data)
-            if compact_msg is not None:
-                messages.append(compact_msg)
-
-        if not messages:
-            return None
-
-        trimmed_messages = messages[-self.keep_messages_per_session :]
-        return {
-            "_type": "memory_compact",
-            "key": key,
-            "created_at": created_at,
-            "updated_at": updated_at,
-            "archived_at": datetime.now().isoformat(),
-            "message_count": len(messages),
-            "messages": trimmed_messages,
-        }
-
-    def _compact_message(self, msg: dict[str, Any]) -> dict[str, Any] | None:
-        role = msg.get("role")
-        if role not in {"user", "assistant", "tool"}:
-            return None
-
-        content = msg.get("content")
-        if isinstance(content, str):
-            text = content.strip()
-        else:
-            text = json.dumps(content, ensure_ascii=False) if content is not None else ""
-
-        if len(text) > self.max_message_chars:
-            text = text[: self.max_message_chars] + " ... (trimmed)"
-
-        item = {"role": role, "content": text}
-        if "timestamp" in msg:
-            item["timestamp"] = msg["timestamp"]
-        if role == "tool" and "name" in msg:
-            item["name"] = msg["name"]
-        return item
-
+        lines = ["Relevant archived memory:"]
+        for idx, r in enumerate(records, start=1):
+            key = r.get("key", "unknown")
+            updated = r.get("updated_at", "")
+            msg_count = r.get("message_count", 0)
+            messages = r.get("messages", [])[-3:]
+            snippet = " | ".join(
+                f"{m.get('role', '?')}: {str(m.get('content', '')).replace(chr(10), ' ')[:120]}"
+                for m in messages
+            )
+            lines.append(f"{idx}. key={key} updated={updated} total={msg_count} :: {snippet}")
+        return "\n".join(lines)
