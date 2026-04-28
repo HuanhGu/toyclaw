@@ -114,6 +114,7 @@ class MemoryManager:
         ) 
 
         trimmed_messages = completion.choices[0].message.content
+        messages = [{"content":trimmed_messages}]
         
         return {
             "_type": "memory_compact",
@@ -121,8 +122,8 @@ class MemoryManager:
             "created_at": created_at,
             "updated_at": updated_at,
             "archived_at": datetime.now().isoformat(),
-            "message_count": len(lines),
-            "messages": trimmed_messages,
+            "message_count": len(messages), #len(lines) 是处理的行数,
+            "messages": messages,
         }
 
         """
