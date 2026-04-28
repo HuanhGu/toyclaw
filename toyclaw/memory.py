@@ -6,13 +6,26 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from toyclaw.provider import LLMResponse, OpenAIProvider
 
+from openai import OpenAI
 
+client = OpenAI(
+    base_url="https://api.moonshot.cn/v1",
+    api_key="sk-sz3Mgj7b0B7hhqD13kNIcxb7DOvwD4AoufeMYbVfiwYbdEiq"
+)
+
+'''
+provider_mem = OpenAIProvider(api_key="sk-sz3Mgj7b0B7hhqD13kNIcxb7DOvwD4AoufeMYbVfiwYbdEiq",
+                          api_base= "https://api.moonshot.cn/v1", 
+                          default_model="moonshot-v1-32k")
+'''
 class MemoryManager:
     """Compact old session JSONL files into long-term memory JSONL archives."""
     
     def __init__(
         self,
+        # provider: OpenAIProvider,
         workspace: Path,
         trigger_count: int = 20,
         compact_batch_size: int = 10,
@@ -27,7 +40,8 @@ class MemoryManager:
         self.compact_batch_size = compact_batch_size
         self.keep_messages_per_session = keep_messages_per_session
         self.max_message_chars = max_message_chars
-    
+
+        self.provider = client
 
 
     # ====================  记忆压缩  ======================
@@ -58,7 +72,7 @@ class MemoryManager:
             }
             out.write(json.dumps(header, ensure_ascii=False) + "\n")
             for session_path in to_compact:
-                payload = self._compact_session_file(session_path)   # 记忆压缩部分
+                payload = self._compact_session_file(session_path)   # 每个session文件的记忆压缩部分
                 if payload is None:
                     continue
                 out.write(json.dumps(payload, ensure_ascii=False) + "\n")
@@ -88,6 +102,31 @@ class MemoryManager:
         key = path.stem
         messages: list[dict[str, Any]] = []
 
+        # 修改1：直接把session内容喂给大模型，让大模型帮忙压缩。输出格式：json
+        # 问题1：为什么原来输出的memory格式长那样，看一下
+        # 修改：LLM总结文档内容，生成摘要 trimmed_messages = '''调用LLM : messages 是json格式，请你分析，并生成摘要。要求输出 list[dict[str, Any]]'''
+        completion = client.chat.completions.create(
+            model="moonshot-v1-32k",
+            messages = [
+                {"role":"system", "content":"Summarize the content of documents I sent you and generate a summary."},
+                { "role":"user","content":"\\n".join(lines),}
+            ]
+        ) 
+
+        trimmed_messages = completion.choices[0].message.content
+        
+        return {
+            "_type": "memory_compact",
+            "key": key,
+            "created_at": created_at,
+            "updated_at": updated_at,
+            "archived_at": datetime.now().isoformat(),
+            "message_count": len(lines),
+            "messages": trimmed_messages,
+        }
+
+        """
+        # 旧：session文档内容拆分成行，保留每行信息前[:max_char]个字符
         for line in lines:
             if not line.strip():
                 continue
@@ -119,6 +158,7 @@ class MemoryManager:
             "message_count": len(messages),
             "messages": trimmed_messages,
         }
+        """
 
 
     
@@ -158,7 +198,7 @@ class MemoryManager:
         if not q:
             return []
 
-        terms = [t for t in q.split() if len(t) >= 2]
+        terms = [t for t in q.split() if len(t) >= 2]       # 用户问题解析：空格拆分话，得到关键词
         if not terms:
             return []
 
@@ -166,14 +206,14 @@ class MemoryManager:
         archives = sorted(self._memory_dir.glob("memory_*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
 
         for archive in archives:
-            for record in self._read_archive_records(archive):
-                text = self._flatten_record_text(record).lower()
-                score = sum(1 for t in terms if t in text)
+            for record in self._read_archive_records(archive): #json加载
+                text = self._flatten_record_text(record).lower()  # json_value整合
+                score = sum(1 for t in terms if t in text) # terms关键词匹配
                 if score <= 0:
                     continue
                 hits.append((score, record))
 
-        hits.sort(key=lambda x: x[0], reverse=True)
+        hits.sort(key=lambda x: x[0], reverse=True)  #检索结果排序，取前limit个结果
         return [item for _, item in hits[:limit]]
 
 
@@ -210,7 +250,7 @@ class MemoryManager:
         """Build a concise memory context block for prompt injection."""
         """将memory封装成块, 以便调用agent时注入"""
         
-        records = self.search(query, limit=limit)
+        records = self.search(query, limit=limit)  # ！长期记忆 '检索' 机制
         if not records:
             return ""
 

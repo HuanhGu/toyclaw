@@ -23,8 +23,8 @@ class Session:
 
     def get_history(self, max_messages: int = 100) -> list[dict[str, Any]]:
         """Return recent messages, aligned to start on a user turn."""
-        sliced = self.messages[-max_messages:]
-        # Drop leading non-user messages to avoid orphaned tool results
+        sliced = self.messages[-max_messages:] #最新msg
+        # Drop leading non-user messages to avoid orphaned tool results 从用户开始
         for i, m in enumerate(sliced):
             if m.get("role") == "user":
                 sliced = sliced[i:]

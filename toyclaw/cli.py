@@ -132,6 +132,7 @@ async def _async_main(cfg: Config, one_shot: str | None = None) -> None:
             except (EOFError, KeyboardInterrupt):
                 print()
                 break
+
             text = user_input.strip()
             if not text:
                 continue
@@ -145,7 +146,7 @@ async def _async_main(cfg: Config, one_shot: str | None = None) -> None:
                 agent.sessions.save(session)  # /new开始, 保存new_session表头
                 print("New session started.\n")
                 continue
-            resp = await agent.process(text)
+            resp = await agent.process(text)  # 处理入口
             print(f"\n{resp}\n")
     finally:
         cron_svc.stop()

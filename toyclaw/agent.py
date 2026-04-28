@@ -62,8 +62,8 @@ class Agent:
         self._set_tool_context(channel, chat_id)
 
         session = self.sessions.get_or_create(session_key)
-        history = session.get_history(max_messages=self.memory_window)  #短期记忆
-        memory_context = self._memory.format_search_context(content, limit=3)  # 注入历史记忆
+        history = session.get_history(max_messages=self.memory_window)  # 短期记忆：只保留
+        memory_context = self._memory.format_search_context(content, limit=3)  # ! 长期记忆'检索与注入'
 
         skills_summary = self._skills.build_summary()
         messages = self._ctx.build_messages(
@@ -73,7 +73,7 @@ class Agent:
             chat_id=chat_id,
             skills_summary=skills_summary,
             memory_context=memory_context,  # 长期记忆注入
-        )
+        ) #build结果什么样子
 
         final, _, all_msgs = await self._run_loop(messages)
 
