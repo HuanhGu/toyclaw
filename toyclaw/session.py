@@ -61,9 +61,10 @@ class SessionManager:
         )
 
     def get_or_create(self, key: str) -> Session:
+        " 加载已有的cli_direct.jsonl文件或者创建新的session "
         if key in self._cache:
             return self._cache[key]
-        session = self._load(key) or Session(key=key)
+        session = self._load(key) or Session(key=key) 
         self._cache[key] = session
         return session
 
@@ -88,8 +89,9 @@ class SessionManager:
         safe = key.replace(":", "_").replace("/", "_")
         return self._dir / f"{safe}.jsonl"
 
-    def _load(self, key: str) -> Session | None:
-        path = self._path(key)
+    def _load(self, key: str) -> Session | None:  
+        """ 加载cli_direct.jsonl文件, 根据文件内容创建session。"""
+        path = self._path(key)  
         if not path.exists():
             return None
         try:

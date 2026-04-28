@@ -39,7 +39,7 @@ class MemoryManager:
         session_files = sorted(self._sessions_dir.glob("*.jsonl"), key=lambda p: p.stat().st_mtime)
         if len(session_files) < self.trigger_count:  
             return 0
-
+        
         candidates = [p for p in session_files if p.name not in exclude_files]  # 当前文件不必压缩
         to_compact = candidates[: self.compact_batch_size]
         if not to_compact:
@@ -74,7 +74,7 @@ class MemoryManager:
 
 
     def _compact_session_file(self, path: Path) -> dict[str, Any] | None:
-        """压缩每个会话.jsonl文件(滑动窗口) : 截取最新对话信息self.keep_messages_per_session条 """
+        """压缩每个会话.jsonl文件(滑动窗口) : 截取所有文件中, 最新对话信息self.keep_messages_per_session条 """
 
         try:
             lines = path.read_text(encoding="utf-8").splitlines()
