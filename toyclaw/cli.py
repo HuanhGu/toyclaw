@@ -138,9 +138,11 @@ async def _async_main(cfg: Config, one_shot: str | None = None) -> None:
             if text.lower() in _EXIT_CMDS:
                 break
             if text == "/new":
+                # 保存旧session：怎么保存（直接在原.jsonl文件名加一个 '_时间' 后缀）
+                archive_path = agent.sessions._archive("cli:direct")
                 session = agent.sessions.get_or_create("cli:direct")
-                session.clear()
-                agent.sessions.save(session)  # 在这里保存“用户发言”
+                session.clear() 
+                agent.sessions.save(session)  # /new开始, 保存new_session表头
                 print("New session started.\n")
                 continue
             resp = await agent.process(text)

@@ -80,8 +80,8 @@ class Agent:
         if final is None:
             final = "I've completed processing but have no response to give."
 
-        self._save_turn(session, all_msgs, skip=1 + len(history))
-        self.sessions.save(session) # 在这里保存“agent发言”
+        self._save_turn(session, all_msgs, skip=1 + len(history))  # append: session保留了cli_direct.jsonl的所有内容 
+        self.sessions.save(session) # ‘每轮’对话结束, 将对话保存到session
         return final
 
     # ------------------------------------------------------------------

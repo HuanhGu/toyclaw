@@ -1,0 +1,32 @@
+1. session更新触发 
+1.1 原始逻辑：
+    如果没有/new
+        创建session（第一轮）
+        加载local （其他轮） 
+    如果/new
+        清除local and 创建session
+
+
+1.2 新版逻辑：
+    1.2.1《已完成》 检查时机1 ：进行/new操作 
+        cli.py
+        如果没有/new
+            创建session（第一轮）
+            加载local （其他轮） 
+        【如果/new
+            现有session的archive：cli_direct.jsonl 换名copy保存到session文件夹下。
+            cli_direct.jsonl   ： 清除cli_direct.jsonl，并新建session】
+
+    1.2.2 检查时机2：每轮session即将写入local 时，检查session会话数目&现有session文件数 是否超出限制
+        session.py / SessionManager
+        session窗口限制逻辑 : 单个session内(所有会话) 会话数目达到上限 limit_convs，只保留最新 limit_convs 轮次会话
+        session文件数限制逻辑 : 
+        
+
+
+
+2. session归档到长期记忆  触发机制
+检查时机：每轮session结束，检查session文档数目 是否超出限制
+
+
+

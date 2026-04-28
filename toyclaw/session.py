@@ -6,6 +6,7 @@ import json
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+import shutil
 from typing import Any
 
 from toyclaw.memory import MemoryManager
@@ -69,6 +70,12 @@ class SessionManager:
         return session
 
     def save(self, session: Session) -> None:
+        "把session变量内容保存到文件, 如每轮对话结束后, /new开始时(表头), "
+        
+        # session窗口限制逻辑 : session内(所有会话) 会话数目达到上限 limit_convs，只保留最新 limit_convs 轮次会话
+        if(len(session.messages) > 20):
+            session.messages = session.messages[-20:]
+
         path = self._path(session.key)
         with open(path, "w", encoding="utf-8") as f:
             meta = {
@@ -81,6 +88,8 @@ class SessionManager:
             for msg in session.messages:
                 f.write(json.dumps(msg, ensure_ascii=False) + "\n")
         self._cache[session.key] = session  # 历史会话
+        
+        # session文件数限制逻辑 : 
         self._memory.maybe_compact(exclude_files={path.name})   # 记忆压缩相关
 
     # ------------------------------------------------------------------
@@ -107,3 +116,18 @@ class SessionManager:
             return Session(key=key, messages=messages, created_at=created or datetime.now())
         except Exception:
             return None
+    
+    # ------------------------------------------------------------------
+    def _archive(self, key: str) -> Path | None:
+        cur_path = self._path(key)
+        if not cur_path.exists():
+            return None
+        safe = key.replace(":", "_").replace("/", "_")
+        date = datetime.now().strftime("%y%m%d_%H%M%S")
+        archive_path = self._dir / f"{safe}_{date}.jsonl"
+
+        shutil.copy(cur_path, archive_path)
+
+
+
+
