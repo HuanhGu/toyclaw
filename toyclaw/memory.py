@@ -37,8 +37,8 @@ class MemoryManager:
 
         exclude_files = exclude_files or set()
         session_files = sorted(self._sessions_dir.glob("*.jsonl"), key=lambda p: p.stat().st_mtime)
-        if len(session_files) < self.trigger_count:  
-            return 0
+        # if len(session_files) < self.trigger_count:  
+            # return 0
         
         candidates = [p for p in session_files if p.name not in exclude_files]  # 当前文件不必压缩
         to_compact = candidates[: self.compact_batch_size]
@@ -74,7 +74,9 @@ class MemoryManager:
 
 
     def _compact_session_file(self, path: Path) -> dict[str, Any] | None:
-        """压缩每个会话.jsonl文件(滑动窗口) : 截取所有文件中, 最新对话信息self.keep_messages_per_session条 """
+        """压缩每个会话.jsonl文件(滑动窗口) : 截取所有文件中, 最新对话信息self.keep_messages_per_session条
+        每条信息, 只保留[: self.max_message_chars]个字符
+        """
 
         try:
             lines = path.read_text(encoding="utf-8").splitlines()
@@ -100,14 +102,14 @@ class MemoryManager:
                 updated_at = data.get("updated_at")
                 continue
 
-            compact_msg = self._compact_message(data)  # 压缩每一行会话信息
+            compact_msg = self._compact_message(data)  # 压缩每一行会话信息，直接截断前[:max_char]个字符
             if compact_msg is not None:
                 messages.append(compact_msg)
 
         if not messages:
             return None
 
-        trimmed_messages = messages[-self.keep_messages_per_session :]
+        trimmed_messages = messages[-self.keep_messages_per_session :]  #只保留最新对话
         return {
             "_type": "memory_compact",
             "key": key,
@@ -119,9 +121,9 @@ class MemoryManager:
         }
 
 
-
+    
     def _compact_message(self, msg: dict[str, Any]) -> dict[str, Any] | None:
-        """ 压缩每条jsonl信息 : 直接截断 """
+        """ 压缩每条jsonl信息 : 直接截断,保留[: self.max_message_chars]个字符 """
 
         role = msg.get("role")
         if role not in {"user", "assistant", "tool"}:

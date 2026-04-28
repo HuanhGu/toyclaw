@@ -10,23 +10,31 @@
 1.2 新版逻辑：
     1.2.1《已完成》 检查时机1 ：进行/new操作 
         cli.py
-        如果没有/new
-            创建session（第一轮）
-            加载local （其他轮） 
-        【如果/new
+        第一轮：创建session
+        其他轮：加载session 
+        [新会话 /new：
             现有session的archive：cli_direct.jsonl 换名copy保存到session文件夹下。
-            cli_direct.jsonl   ： 清除cli_direct.jsonl，并新建session】
+            cli_direct.jsonl   ： 清除cli_direct.jsonl，并新建session]
 
-    1.2.2 检查时机2：每轮session即将写入local 时，检查session会话数目&现有session文件数 是否超出限制
+    1.2.2《已完成》 检查时机2：每轮session即将写入local 时，检查 session会话数目&现有session文件数 是否超出限制
         session.py / SessionManager
-        session窗口限制逻辑 : 单个session内(所有会话) 会话数目达到上限 limit_convs，只保留最新 limit_convs 轮次会话
-        session文件数限制逻辑 : 
+        session会话数 限制逻辑 : 单个session内(所有会话) 会话数目达到上限 limit_convs，只保留最新 limit_convs 轮次会话
+        session文件数 限制逻辑 : session达到最大文件数目，则压缩所有文件并保存到长期记忆memory。
+            压缩方法：Ⅰ.将所有文件保存到memory的一个.jsonl文件里; Ⅱ.每个文件内的信息只取最新[-limit:]; Ⅲ.每条信息只取前[:limit]个字符。
         
 
 
+2. 考虑添加功能：
+    异步执行：
 
-2. session归档到长期记忆  触发机制
-检查时机：每轮session结束，检查session文档数目 是否超出限制
+    记忆压缩、记忆更新：
+    【step1】session会话达到最大值，（一轮session压缩？短期记忆如何更新？）
+    session文件达到最大值，保留到长期记忆。（多轮session压缩？长期记忆如何更新？）
+
+    记忆加载：
+    加载哪些记忆？（如何选择，融合长期、短期、当前问题？）
+    如何检索出 需要加载的记忆？
+
 
 
 
