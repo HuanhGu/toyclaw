@@ -6,7 +6,10 @@ import json
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
+import shutil
 from typing import Any
+
+from toyclaw.memory import MemoryManager
 
 
 @dataclass
@@ -43,19 +46,36 @@ class Session:
 class SessionManager:
     """Manages sessions persisted as JSONL files."""
 
-    def __init__(self, workspace: Path):
+    def __init__(
+        self,
+        workspace: Path,
+        memory_trigger_count: int = 20,
+        memory_compact_batch_size: int = 10,
+    ):
         self._dir = workspace / "sessions"
         self._dir.mkdir(parents=True, exist_ok=True)
         self._cache: dict[str, Session] = {}
+        self._memory = MemoryManager(
+            workspace,
+            trigger_count=memory_trigger_count,
+            compact_batch_size=memory_compact_batch_size,
+        )
 
     def get_or_create(self, key: str) -> Session:
+        " 加载已有的cli_direct.jsonl文件或者创建新的session "
         if key in self._cache:
             return self._cache[key]
-        session = self._load(key) or Session(key=key)
+        session = self._load(key) or Session(key=key) 
         self._cache[key] = session
         return session
 
     def save(self, session: Session) -> None:
+        "把session变量内容保存到文件, 如每轮对话结束后, /new开始时(表头), "
+        
+        # session窗口限制逻辑 : session内(所有会话) 会话数目达到上限 limit_convs，只保留最新 limit_convs 轮次会话
+        if(len(session.messages) > 20):
+            session.messages = session.messages[-20:]
+
         path = self._path(session.key)
         with open(path, "w", encoding="utf-8") as f:
             meta = {
@@ -67,7 +87,10 @@ class SessionManager:
             f.write(json.dumps(meta, ensure_ascii=False) + "\n")
             for msg in session.messages:
                 f.write(json.dumps(msg, ensure_ascii=False) + "\n")
-        self._cache[session.key] = session
+        self._cache[session.key] = session  # 历史会话
+        
+        # session文件数限制逻辑 : 
+        self._memory.maybe_compact(exclude_files={path.name})   # 记忆压缩相关
 
     # ------------------------------------------------------------------
 
@@ -75,8 +98,9 @@ class SessionManager:
         safe = key.replace(":", "_").replace("/", "_")
         return self._dir / f"{safe}.jsonl"
 
-    def _load(self, key: str) -> Session | None:
-        path = self._path(key)
+    def _load(self, key: str) -> Session | None:  
+        """ 加载cli_direct.jsonl文件, 根据文件内容创建session。"""
+        path = self._path(key)  
         if not path.exists():
             return None
         try:
@@ -92,3 +116,18 @@ class SessionManager:
             return Session(key=key, messages=messages, created_at=created or datetime.now())
         except Exception:
             return None
+    
+    # ------------------------------------------------------------------
+    def _archive(self, key: str) -> Path | None:
+        cur_path = self._path(key)
+        if not cur_path.exists():
+            return None
+        safe = key.replace(":", "_").replace("/", "_")
+        date = datetime.now().strftime("%y%m%d_%H%M%S")
+        archive_path = self._dir / f"{safe}_{date}.jsonl"
+
+        shutil.copy(cur_path, archive_path)
+
+
+
+

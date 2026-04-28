@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Awaitable, Callable
 
 from toyclaw.context import ContextBuilder
+from toyclaw.memory import MemoryManager
 from toyclaw.provider import LLMResponse, OpenAIProvider
 from toyclaw.session import Session, SessionManager
 from toyclaw.skills import SkillsLoader
@@ -43,6 +44,7 @@ class Agent:
 
         self._ctx = ContextBuilder(workspace)
         self._skills = SkillsLoader(workspace)
+        self._memory = MemoryManager(workspace)
 
     # ------------------------------------------------------------------
     # Public API
@@ -60,15 +62,17 @@ class Agent:
         self._set_tool_context(channel, chat_id)
 
         session = self.sessions.get_or_create(session_key)
-        history = session.get_history(max_messages=self.memory_window)
+        history = session.get_history(max_messages=self.memory_window)  #短期记忆
+        memory_context = self._memory.format_search_context(content, limit=3)  # 注入历史记忆
 
         skills_summary = self._skills.build_summary()
         messages = self._ctx.build_messages(
-            history=history,
+            history=history,            # 短期会话上下文
             user_message=content,
             channel=channel,
             chat_id=chat_id,
             skills_summary=skills_summary,
+            memory_context=memory_context,  # 长期记忆注入
         )
 
         final, _, all_msgs = await self._run_loop(messages)
@@ -76,8 +80,8 @@ class Agent:
         if final is None:
             final = "I've completed processing but have no response to give."
 
-        self._save_turn(session, all_msgs, skip=1 + len(history))
-        self.sessions.save(session)
+        self._save_turn(session, all_msgs, skip=1 + len(history))  # append: session保留了cli_direct.jsonl的所有内容 
+        self.sessions.save(session) # ‘每轮’对话结束, 将对话保存到session
         return final
 
     # ------------------------------------------------------------------
