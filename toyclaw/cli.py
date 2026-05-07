@@ -140,8 +140,8 @@ async def _async_main(cfg: Config, one_shot: str | None = None) -> None:
                 break
             if text == "/new":
                 # 保存旧session：怎么保存（直接在原.jsonl文件名加一个 '_时间' 后缀）
-                archive_path = agent.sessions._archive("cli:direct")
-                session = agent.sessions.get_or_create("cli:direct")
+                archive_path = agent.sessions._archive("cli:direct")  # 会话缓存归档
+                session = agent.sessions.get_or_create("cli:direct")    # 创建新会话缓存文件
                 session.clear() 
                 agent.sessions.save(session)  # /new开始, 保存new_session表头
                 print("New session started.\n")

@@ -62,7 +62,7 @@ class Agent:
         self._set_tool_context(channel, chat_id)
 
         session = self.sessions.get_or_create(session_key)
-        history = session.get_history(max_messages=self.memory_window)  # 短期记忆：只保留
+        history = session.get_history(max_messages=self.memory_window)  # 历史会话检索（这里的只有简单内容检索，而非“匹配”）
         memory_context = self._memory.format_search_context(content, limit=3)  # ! 长期记忆'检索与注入'
 
         skills_summary = self._skills.build_summary()

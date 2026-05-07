@@ -209,11 +209,29 @@ class MemoryManager:
         for archive in archives:
             for record in self._read_archive_records(archive): #json加载
                 text = self._flatten_record_text(record).lower()  # json_value整合
-                score = sum(1 for t in terms if t in text) # terms关键词匹配
+                # BM检索：terms关键词匹配
+                score_bm = sum(1 for t in terms if t in text) 
+                # 模糊检索：调用AI 
+                # terms 长什么样子？terms时query按空格分割后的list
+                # q长什么样子？用户输入查询的完整信息 ‘给我讲过笑话：一个冷笑话 一个热笑话 笑掉大牙的那种’
+                # text长什么样子？AI回答的flat文本: 'cli_direct_260507_161602 我是toyclaw，一个由月之暗面科技有限公司开发的人工智能助手。我在这里帮助你解答问题、处理文件和执行各种任务。'
+                completion = client.chat.completions.create(
+                    model="moonshot-v1-32k",
+                    messages = [
+                        {"role":"system", "content":"Summarize the content of documents I sent you and generate a summary."},
+                        { "role":"user","content":f"Summarize the content of {text} and check if it contains the answer to the question {q}. \
+                                                    Based on the match, output a score (output only an integer value, ranging from 0 to 10).\
+                                                    Note:If they are completely unrelated, the output is 0.",}
+                    ]
+                ) 
+                # 总结{text}的内容，检查里面是否有问题{q}的答案。根据匹配度输出一个打分值（仅输出一个整数值，范围限制在0~10）。
+                score_llm = int(completion.choices[0].message.content)
+
+                score = 0.3 * score_bm + 0.7 * score_llm
                 if score <= 0:
                     continue
                 hits.append((score, record))
-
+        
         hits.sort(key=lambda x: x[0], reverse=True)  #检索结果排序，取前limit个结果
         return [item for _, item in hits[:limit]]
 
