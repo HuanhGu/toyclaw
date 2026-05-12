@@ -62,17 +62,17 @@ class Agent:
         self._set_tool_context(channel, chat_id)
 
         session = self.sessions.get_or_create(session_key)
-        history = session.get_history(max_messages=self.memory_window)  # 历史会话检索（这里的只有简单内容检索，而非“匹配”）
+        history = session.get_history(max_messages=self.memory_window)  # 获取全部历史会话
         memory_context = self._memory.format_search_context(content, limit=3)  # ! 长期记忆'检索与注入'
 
         skills_summary = self._skills.build_summary()
         messages = self._ctx.build_messages(
             history=history,            # 短期会话上下文
+            memory_context=memory_context,  # 长期记忆注入
             user_message=content,
             channel=channel,
             chat_id=chat_id,
             skills_summary=skills_summary,
-            memory_context=memory_context,  # 长期记忆注入
         ) #build结果什么样子
 
         final, _, all_msgs = await self._run_loop(messages)
@@ -80,10 +80,10 @@ class Agent:
         if final is None:
             final = "I've completed processing but have no response to give."
 
-        self._save_turn(session, all_msgs, skip=1 + len(history))  # append: session保留了cli_direct.jsonl的所有内容 
-        self.sessions.save(session) # ‘每轮’对话结束, 将对话保存到session(内有session刷新与长期记忆存储机制)
+        self._save_turn(session, all_msgs, skip=1 + len(history))  # append: session 保留了cli_direct.jsonl的所有内容 
+        self.sessions.save(session) # ‘每轮’对话结束, 将对话保存到 session(内有 短期记忆更新与长期记忆存储机制)
         return final
-
+        
     # ------------------------------------------------------------------
     # Agent loop
     # ------------------------------------------------------------------
